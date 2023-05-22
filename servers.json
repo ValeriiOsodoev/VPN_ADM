@@ -1,0 +1,12 @@
+SERVERS_VULTR='{
+    "srv-vpn-01": ["80.240.29.169", "root", "z8%B%{$ULh#LLhhX"], "srv-vpn-02": ["95.179.251.58", "root", "Fx$5KP!}swKH)Xy."], "srv-vpn-03": ["80.240.21.202", "root", "1*hK6Djk%QJ=gpwc"], "srv-vpn-04": ["209.250.239.80", "root", "]vM3wzGk3?v($!kh"], "srv-vpn-05": ["192.248.178.81", "root", "A3t(*2$.rfk!.GtE"], "srv-vpn-06": ["136.244.89.190", "root", "#3kV53V[G%TQ7x+r"], "srv-vpn-07": ["192.248.189.204", "root", "Hz)6F9HszCSu6V+b"], "srv-vpn-08": ["95.179.171.232", "root", "mN]5c{%AgAtx7zV]"], "srv-vpn-09": ["80.240.24.48", "root", "F3j$vRt7+.F,}R{N"], "srv-vpn-10": ["108.61.190.42", "root", "_Em3QHLVoB7?7?bH"], "srv-vpn-11": ["45.77.64.28", "root", "k*A2Yc3PJ){?2K3S"], "srv-vpn-12": ["95.179.164.162", "root", "Zm}38+!jgn9wp,6m"], "srv-vpn-13": ["217.163.29.188", "root", "C-p1#wFbBq]8c%Jq"], "srv-vpn-14": ["80.240.18.157", "root", "%k3XDPuh9QZxBVat"], "srv-vpn-15": ["136.244.90.151", "root", "2M{n[mLxN%FZhb3["], "srv-vpn-16": ["192.248.186.10", "root", "2p(LqR[5te$-[Q9J"], "srv-vpn-17": ["108.61.211.231", "root", "@w2G]]heFbc-,qj*"], "srv-vpn-18": ["136.244.90.180", "root", "cN5+A6Skj2sCE1No"], "srv-vpn-19": ["199.247.18.60", "root", "7=uEJ)W?Le5@f%P*"], "srv-vpn-20": ["80.240.23.230", "root", "B7*v#hkmz#VUx*D)"], "srv-vpn-21": ["136.244.95.103", "root", "k6*ARecALBYjkLj="], "srv-vpn-22": ["192.248.174.82", "root", "r!K7x9eZ6{_fjNjJ"], "srv-vpn-23": ["65.20.76.125", "root", "Nx}6ezDf4,F]7bdQ"], "srv-vpn-24": ["95.179.228.147", "root", "Gs2$buthbX}p%Rde"], "srv-vpn-25": ["209.250.236.123", "root", "8K=jz)FQEu2dzq4W"], "srv-vpn-26": ["104.207.131.222", "root", "]5rBY$u.$mXP8LPo"], "srv-vpn-27": ["155.138.217.97", "root", ".Cq6C#fxSc}4N+o("], "srv-vpn-28": ["45.77.52.102", "root", "}7Fz_5_xeC,E5(#*"], "srv-vpn-29": ["45.76.80.253", "root", "6fM]ar354$tv6ayS"], "srv-vpn-30": ["108.160.139.154", "root", "t7@HYj%Sb]jrceC7"], "srv-vpn-31": ["45.76.95.89", "root", "Nz5*2TRhceRX1NK)"], "srv-vpn-32": ["80.240.25.196", "root", "4@hLrk5CrPx28g)o"]
+    }'
+SERVERS_HETZNER='{
+    "srv-vpn-de": ["168.119.36.112", "root", "smuEiJ5uvCHFAQ"], "srv-vpn-de2": ["5.9.67.157", "root", "vpEC5kBBteJ8TG"]
+    }'
+SERVERS_GCORE='{
+    "srv-vpn-tr": ["5.188.168.223", "root", "2XiJR2597lDQ"], "srv-vpn-us": ["92.38.132.33", "root", "5l6lB68XvH3W"], "srv-vpn-us2": ["5.188.0.234", "root", "aD2eq7222oa5"]
+    }'
+SERVERS_REGRU='{
+    "srv-vpn-ru": ["80.78.253.117", "root", "Xz9v#HHxXfFm"]
+    }'
