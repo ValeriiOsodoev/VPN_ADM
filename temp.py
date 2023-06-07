@@ -8,7 +8,6 @@ import asyncssh
 import paramiko
 import qrcode
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
@@ -31,7 +30,7 @@ gcore_dict = json.loads(SERVERS_GCORE)
 regru_dict = json.loads(SERVERS_REGRU)
 
 bot = Bot(token=TOKEN)
-dp = Dispatcher(bot, storage=MemoryStorage())
+dp = Dispatcher(bot)
 
 
 button_add = KeyboardButton('Выбрать сервер')
@@ -41,8 +40,6 @@ keyboard = ReplyKeyboardMarkup(resize_keyboard=True).row(button_add)
 class State(StatesGroup):
     waiting_for_name = State()
 
-storage = MemoryStorage()
-state = storage
 
 @dp.message_handler(commands=['start'], state="*")
 async def start(message, state: FSMContext):
@@ -117,7 +114,7 @@ async def get_users(message: types.Message):
                 keyboard = types.InlineKeyboardMarkup()
                 button_add = types.InlineKeyboardButton(
                     text="Добавить пользователя",
-                    callback_data=f"add {providers} {server_name}", 
+                    callback_data=f"add {providers} {server_name}"
                 )
                 button_del = types.InlineKeyboardButton(
                     text="Удалить пользователя",
@@ -176,27 +173,8 @@ async def add_user_to_server(query: types.CallbackQuery, state: FSMContext):
 
     # Переключаемся в состояние ожидания ввода текста
     await state.set_state(State.waiting_for_name.state)
-
-    # Сохраняем информацию о provider и server_name в состоянии
-    await state.update_data(provider=provider, server_name=server_name)
-    
-
-@dp.message_handler(state=State.waiting_for_name.state)
-async def process_name_input(message: types.Message, state: FSMContext):
-    user_name = message.text
-
-    # Получаем информацию о provider и server_name из состояния
-    data = await state.get_data()
-    provider = data['provider']
-    server_name = data['server_name']
-
-    # Получаем информацию о сервере
-    provider_dict = providers_dict.get(provider)
-    server_info = provider_dict.get(server_name)
-    if isinstance(server_info, list):
-        ip = server_info[0]
-        user = server_info[1]
-        passwd = server_info[2]
+    user_name = await state.get_data()
+    print(user_name)
 
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys()
@@ -215,14 +193,12 @@ async def process_name_input(message: types.Message, state: FSMContext):
     config_path = f'/root/wg0-client-{user_name}.conf'
     time.sleep(3)
 
-    await send_qr_code(message.chat.id, config_path, ssh)
+    await send_qr_code(query.from_user.id, config_path, ssh)
 
     await bot.send_message(
-        message.chat.id,
+        query.from_user.id,
         f"Пользователь {user_name} успешно добавлен на сервер {server_name}."
     )
-
-    await state.finish()
 
 
 async def send_qr_code(chat_id, config_path, ssh):
