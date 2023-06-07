@@ -39,12 +39,15 @@ keyboard = ReplyKeyboardMarkup(resize_keyboard=True).row(button_add)
 
 
 class State(StatesGroup):
-    waiting_for_name = State()
+    waiting_for_name_add = State()
+    waiting_for_name_del = State()
+
 
 storage = MemoryStorage()
 state = storage
 
-@dp.message_handler(commands=['start'], state="*")
+
+@dp.message_handler(commands=['start'], state='*')
 async def start(message, state: FSMContext):
     await state.finish()
     if str(message.from_user.id) in ID_ADMIN:
@@ -116,12 +119,12 @@ async def get_users(message: types.Message):
             if users_count is not None:
                 keyboard = types.InlineKeyboardMarkup()
                 button_add = types.InlineKeyboardButton(
-                    text="Добавить пользователя",
-                    callback_data=f"add {providers} {server_name}", 
+                    text='Добавить пользователя',
+                    callback_data=f'add {providers} {server_name}',
                 )
                 button_del = types.InlineKeyboardButton(
-                    text="Удалить пользователя",
-                    callback_data=f"del {providers} {server_name}"
+                    text='Удалить пользователя',
+                    callback_data=f'del {providers} {server_name}',
                 )
                 keyboard.add(button_add, button_del)
                 await message.answer(
@@ -149,8 +152,10 @@ providers_dict = {
 }
 
 
-@dp.callback_query_handler(lambda query: query.data.startswith('add'), state="*")
-async def add_user_to_server(query: types.CallbackQuery, state: FSMContext):
+@dp.callback_query_handler(
+    lambda query: query.data.startswith(('add', 'del')), state="*"
+)
+async def edit_users_on_server(query: types.CallbackQuery, state: FSMContext):
     user_id = str(query.from_user.id)
     if user_id not in ID_ADMIN:
         await query.answer(
@@ -159,34 +164,31 @@ async def add_user_to_server(query: types.CallbackQuery, state: FSMContext):
         )
         return
 
-    _, provider, server_name = query.data.split()
-    provider_dict = providers_dict.get(provider)
+    action, provider, server_name = query.data.split()
 
-    server_info = provider_dict.get(server_name)
-    if isinstance(server_info, list):
-        ip = server_info[0]
-        user = server_info[1]
-        passwd = server_info[2]
-
+    if action == 'del':
+        message = f'Введите имя пользователя для удаления с сервера {server_name}:'
+        await state.update_data(action='del') 
+        await state.set_state(State.waiting_for_name_add.state)
+    elif action == 'add':
+        message = f'Введите имя пользователя для добавления на сервер {server_name}:'
+        await state.update_data(action='add') 
+        await state.set_state(State.waiting_for_name_del.state)
     await bot.send_message(
         chat_id=query.from_user.id,
-        text='Введите имя пользователя для добавления '
-        f'на сервер {server_name}:',
+        text=message,
     )
-
-    # Переключаемся в состояние ожидания ввода текста
-    await state.set_state(State.waiting_for_name.state)
-
     # Сохраняем информацию о provider и server_name в состоянии
     await state.update_data(provider=provider, server_name=server_name)
-    
 
-@dp.message_handler(state=State.waiting_for_name.state)
-async def process_name_input(message: types.Message, state: FSMContext):
+
+async def process_user_input(message: types.Message, state: FSMContext):
+
     user_name = message.text
 
     # Получаем информацию о provider и server_name из состояния
     data = await state.get_data()
+    action = data['action']
     provider = data['provider']
     server_name = data['server_name']
 
@@ -203,26 +205,60 @@ async def process_name_input(message: types.Message, state: FSMContext):
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(ip, username=user, password=passwd)
     remote_shell = ssh.invoke_shell()
-    remote_shell.send('./wireguard-install.sh\n')
-    time.sleep(0.5)
-    remote_shell.send('1\n')
-    time.sleep(0.5)
-    remote_shell.send(f'{user_name}\n')
-    time.sleep(0.5)
-    remote_shell.sendall('\n')
-    time.sleep(0.5)
-    remote_shell.sendall('\n')
-    config_path = f'/root/wg0-client-{user_name}.conf'
-    time.sleep(3)
 
-    await send_qr_code(message.chat.id, config_path, ssh)
+    if action == 'add':
+        remote_shell.send('./wireguard-install.sh\n')
+        time.sleep(0.5)
+        remote_shell.send('1\n')
+        time.sleep(0.5)
+        remote_shell.send(f'{user_name}\n')
+        time.sleep(0.5)
+        remote_shell.sendall('\n')
+        time.sleep(0.5)
+        remote_shell.sendall('\n')
+        config_path = f'/root/wg0-client-{user_name}.conf'
+        time.sleep(3)
 
-    await bot.send_message(
-        message.chat.id,
-        f"Пользователь {user_name} успешно добавлен на сервер {server_name}."
-    )
+        await send_qr_code(message.chat.id, config_path, ssh)
+
+        await bot.send_message(
+            message.chat.id,
+            f"Пользователь {user_name} успешно добавлен на сервер {server_name}."
+        )
+    elif action == 'del':
+        remote_shell.send(f'sed -i "/^### Client {user_name}\$/,/^$/d" "/etc/wireguard/wg0.conf"\n')
+        time.sleep(0.5)
+
+        # Удаляем конфигурационный файл клиента
+        client_conf_file = f"/root/wg0-client-{user_name}.conf"
+        remote_shell.send(f"rm -f {client_conf_file}\n")
+        time.sleep(0.5)
+
+        # Перезагружаем службу wg-quick
+        remote_shell.send("wg syncconf wg0 <(wg-quick strip wg0)\n")
+        time.sleep(0.5)
+
+        await bot.send_message(
+            message.chat.id,
+            f"Пользователь {user_name} успешно удалён с сервера {server_name}."
+        )
+    else:
+        await bot.send_message(
+            message.chat.id,
+            f"Пользователь {user_name} отсутствует на сервере {server_name}."
+        )
 
     await state.finish()
+
+
+@dp.message_handler(state=State.waiting_for_name_add.state)
+async def add_user(message: types.Message, state: FSMContext):
+    await process_user_input(message, state)
+
+
+@dp.message_handler(state=State.waiting_for_name_del.state)
+async def del_user(message: types.Message, state: FSMContext):
+    await process_user_input(message, state)
 
 
 async def send_qr_code(chat_id, config_path, ssh):
@@ -274,9 +310,10 @@ async def get_users_count(ip_address, server_user, server_password):
         return None
 
 
-@dp.message_handler(lambda message: message.text == 'В главное меню')
-async def button_main_menu(message):
+@dp.message_handler(lambda message: message.text == 'В главное меню', state="*")
+async def button_main_menu(message, state: FSMContext):
     if str(message.from_user.id) in ID_ADMIN:
+        await state.finish()
         await message.answer('Выберите действие:', reply_markup=keyboard)
     else:
         await message.answer(
