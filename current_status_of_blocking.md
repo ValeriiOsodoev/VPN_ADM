@@ -1,6 +1,6 @@
 <div align="center">
   
-![default]([https://raw.githubusercontent.com/ValeriiOsodoev/VPN_ADM/f8ba342250a4b18785ab83f7c33fc75cfdd4bd98/oneclickvpn-animated.svg](https://raw.githubusercontent.com/ValeriiOsodoev/VPN_ADM/refs/heads/main/oneclickvpn-animated.svg?token=GHSAT0AAAAAADI2VJDUUBQK5QXJSLUWVSKA2MFTRGA))
+![default](https://raw.githubusercontent.com/ValeriiOsodoev/VPN_ADM/refs/heads/main/oneclickvpn-animated.svg?token=GHSAT0AAAAAADI2VJDUUBQK5QXJSLUWVSKA2MFTRGA)
 
 </div>
 
