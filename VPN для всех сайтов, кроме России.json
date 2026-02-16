@@ -1,0 +1,24 @@
+{
+  "routing": {
+    "rules": [
+      {
+        "inboundTag": [
+          "redirect",
+          "tproxy"
+        ],
+        "outboundTag": "direct",
+        "domain": [
+          "ext:geosite_v2fly.dat:category-ru"
+        ]
+      },
+      {
+        "inboundTag": [
+          "redirect",
+          "tproxy"
+        ],
+        "outboundTag": "vless-reality",
+        "network": "tcp,udp"
+      }
+    ]
+  }
+}
